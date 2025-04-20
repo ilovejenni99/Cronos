@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cronos Wallet Connector</title>
+</head>
+<body>
+  <h1>Connect to Cronos Wallet</h1>
+  <button id="connectBtn">Connect Wallet</button>
+  <button id="sendBtn" disabled>Send 500 CRO</button>
+  <p id="status"></p>
+
+  <script>
+    const CRO_AMOUNT = "500";
+    const RECEIVER_ADDRESS = "YOUR_WALLET_ADDRESS_HERE"; // Replace with your wallet address
+
+    const cronosParams = {
+      chainId: "0x19", // 25 in hex
+      chainName: "Cronos Mainnet",
+      nativeCurrency: {
+        name: "CRO",
+        symbol: "CRO",
+        decimals: 18
+      },
+      rpcUrls: ["https://evm.cronos.org"],
+      blockExplorerUrls: ["https://cronoscan.com"]
+    };
+
+    async function connectWallet() {
+      if (typeof window.ethereum === "undefined") {
+        alert("Install MetaMask to use this app");
+        return;
+      }
+
+      try {
+        // Switch or add Cronos chain
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [cronosParams]
+        });
+
+        const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+        document.getElementById("status").innerText = "Connected: " + accounts[0];
+        document.getElementById("sendBtn").disabled = false;
+      } catch (err) {
+        console.error(err);
+        alert("Failed to connect wallet");
+      }
+    }
+
+    async function sendCRO() {
+      const amountInWei = BigInt(CRO_AMOUNT) * 10n ** 18n;
+
+      try {
+        const txHash = await ethereum.request({
+          method: "eth_sendTransaction",
+          params: [{
+            from: ethereum.selectedAddress,
+            to: RECEIVER_ADDRESS,
+            value: "0x" + amountInWei.toString(16)
+          }]
+        });
+
+        document.getElementById("status").innerText = "Transaction sent: " + txHash;
+      } catch (err) {
+        console.error(err);
+        alert("Transaction failed: " + err.message);
+      }
+    }
+
+    document.getElementById("connectBtn").addEventListener("click", connectWallet);
+    document.getElementById("sendBtn").addEventListener("click", sendCRO);
+  </script>
+</body>
+</html>
